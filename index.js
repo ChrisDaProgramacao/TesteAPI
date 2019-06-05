@@ -1,21 +1,35 @@
 const axios = require("axios")
 const fs = require("fs")
 const crypto = require("crypto");
-const request = require('request-json');
+var request = require('request');
 
 
 async function getRetornaDadosApi(){
   return await axios.get('https://api.codenation.dev/v1/challenge/dev-ps/generate-data?token=d165f7b9a60425fc2c18c850c3aca61453778365')
 }
 
-function enviaDadosApi(jsonEnvio) {
-  axios.post('https://api.codenation.dev/v1/challenge/dev-ps/submit-solution?token=d165f7b9a60425fc2c18c850c3aca61453778365',jsonEnvio)
-    .then(res => {
-      console.log(res)
-    })
-    .catch(err => {
-      console.log(err)
-    })
+function enviaDadosApi() {
+  const FormData = require('form-data');
+  const fs = require('fs');
+  const axios = require('axios');
+
+  let form = new FormData();
+
+  form.append('answer', fs.createReadStream('answer.json'), {
+    filename: 'answer.json'
+  });
+
+  axios.create({
+    headers: form.getHeaders()
+  }).post('https://api.codenation.dev/v1/challenge/dev-ps/submit-solution?token=d165f7b9a60425fc2c18c850c3aca61453778365', form).then(response => {
+    console.log(response);
+  }).catch(error => {
+    if (error.response) {
+      console.log(error.response);
+    }
+    console.log(error.message);
+  });
+
 }
 
 async function converteDados() {
@@ -24,9 +38,15 @@ async function converteDados() {
     gravarArquivo(retornoApi.data)
     const jsonContent = await JSON.parse(fs.readFileSync('answer.json'))
     var descriptografado = descriptografar(jsonContent.numero_casas, jsonContent.cifrado)
-   // console.log(jsonContent)
-    //console.log(retornoApi.data)
-    console.log(descriptografado)
+    var resumo_criptografico = sha1(descriptografado)
+    var rett = '{"numero_casas":' + jsonContent.numero_casas + ',"token":"d165f7b9a60425fc2c18c850c3aca61453778365","cifrado":"uwtlwfrrnsl qfslzfljx, qnpj uneefx, htrj ns tsqd ybt xnejx: ytt gnl fsi ytt xrfqq. wnhmfwi ufyynx", "decifrado":"' + descriptografado +'","resumo_criptografico":"' + resumo_criptografico + '"}'
+    
+    var envio = await JSON.parse(rett)
+    gravarArquivo(envio)
+   // var envio = await JSON.parse(fs.readFileSync('answer.json'))
+   // console.log(JSON.stringify(envio.data))
+
+    enviaDadosApi()
   } catch (err) {
     console.log(err)
   }
@@ -46,7 +66,7 @@ function descriptografar(index, texto){
     if(i.charCodeAt() - index > 122){
       return 'a'
     }else if(i.charCodeAt() - index < 97){
-      return 'z'
+      return String.fromCharCode(i.charCodeAt() + 21) 
     }
     return String.fromCharCode(i.charCodeAt() - index)
 })

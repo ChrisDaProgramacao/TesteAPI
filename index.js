@@ -10,8 +10,6 @@ async function getRetornaDadosApi(){
 
 function enviaDadosApi() {
   const FormData = require('form-data');
-  const fs = require('fs');
-  const axios = require('axios');
 
   let form = new FormData();
 
@@ -43,8 +41,6 @@ async function converteDados() {
     
     var envio = await JSON.parse(rett)
     gravarArquivo(envio)
-   // var envio = await JSON.parse(fs.readFileSync('answer.json'))
-   // console.log(JSON.stringify(envio.data))
 
     enviaDadosApi()
   } catch (err) {
@@ -64,9 +60,9 @@ function descriptografar(index, texto){
       return i
     }
     if(i.charCodeAt() - index > 122){
-      return 'a'
+      return String.fromCharCode(i.charCodeAt() - 16 - index) 
     }else if(i.charCodeAt() - index < 97){
-      return String.fromCharCode(i.charCodeAt() + 21) 
+      return String.fromCharCode(i.charCodeAt() + 16 + index) 
     }
     return String.fromCharCode(i.charCodeAt() - index)
 })
@@ -77,8 +73,5 @@ return ret.join('')
 function sha1(data) {
   return crypto.createHash("sha1").update(data, "binary").digest("hex");
 }
-
-//console.log(descriptografar(5, 'uwtlwfrrnsl qfslzfljx, qnpj uneefx, htrj ns tsqd ybt xnejx: ytt gnl fsi ytt xrfqq. wnhmfwi ufyynx'))
-//gravarArquivo('{"numero_casas":5,"token":"d165f7b9a60425fc2c18c850c3aca61453778365","cifrado":"uwtlwfrrnsl qfslzfljx, qnpj uneefx, htrj ns tsqd ybt xnejx: ytt gnl fsi ytt xrfqq. wnhmfwi ufyynx","decifrado":"","resumo_criptografico":""}')
 
 converteDados()
